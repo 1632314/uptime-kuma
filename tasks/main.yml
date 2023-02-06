@@ -1,0 +1,35 @@
+---
+- name: Ensure group for uptime-kuma
+  group:
+    name: "{{ uptime_kuma_user }}"
+    state: present
+    system: true
+  
+- name: Ensure user for uptime-kuma
+  user:
+    name: "{{ uptime_kuma_user }}"
+    create_home: false
+    state: present
+    group: "{{ uptime_kuma_user }}"
+    system: true
+
+- name: Ensure directory for volume
+  file:
+    state: directory
+    path: "{{ uptime_kuma_volume_path }}"
+    owner: "{{ uptime_kuma_user }}"
+    recurse: true
+    mode: 0744
+
+- name: Create container for uptime-kuma
+  community.docker.docker_container:
+    image: louislam/uptime-kuma
+    name: "{{ uptime_kuma_container_name }}"
+    state: started
+    restart_policy: "{{ uptime_kuma_restart_policy }}"
+    ports:
+      - "{{ uptime_kuma_port }}:3001"
+    volumes:
+      - "{{ uptime_kuma_volume_path }}:/app/data"
+
+    
